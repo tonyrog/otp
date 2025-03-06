@@ -23,9 +23,16 @@
 #ifndef _WIN32
 #include <dlfcn.h>
 #endif
+#include <wx/wx.h>
 #include "wxe_impl.h"
 #include "wxe_return.h"
 #include "wxe_gl.h"
+#include "gen/wxe_macros.h"
+#include "gen/wxe_derived_dest.h"
+
+#ifdef wxUSE_GLFW
+#include <GLFW/glfw3.h>
+#endif
 
 #define GLE_LIB_START 5000
 
@@ -96,6 +103,14 @@ void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLCo
       egl_initiated = 1;
     }
   }
+#ifdef wxUSE_GLFW
+  if (!((EwxGLContext*)context)->mGlfwInitialized) {
+      ((EwxGLContext*)context)->mGlfwInitialized = true;
+      if (!glfwInit()) {
+        enif_fprintf(stderr, "GLFW initialization failed\r\n");
+      }
+  }
+#endif
 }
 
 void deleteActiveGL(wxGLCanvas *canvas)

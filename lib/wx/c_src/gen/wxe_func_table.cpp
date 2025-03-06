@@ -21,6 +21,8 @@
 #include <wx/wx.h>
 #include "../wxe_impl.h"
 
+extern void wxe_dyncall(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd);
+
 extern void wxe_destroy(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd);
 extern void wxe_registerPid(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd);
 extern void wxEvtHandler_Connect(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd);
@@ -4105,7 +4107,7 @@ wxe_fns_t wxe_fns[] =
   {NULL, "", "", 0}, // 49
   {wxe_destroy, "wxe_util", "destroy", 1}, // 50
   {wxe_registerPid, "wxe_util", "registerPid", 1}, // 51
-  {NULL, "", "", 0}, // 52
+  {wxe_dyncall, "wxe_util", "dyncall", 5}, // 52  
   {NULL, "", "", 0}, // 53
   {NULL, "", "", 0}, // 54
   {NULL, "", "", 0}, // 55

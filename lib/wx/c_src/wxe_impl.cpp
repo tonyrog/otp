@@ -110,6 +110,35 @@ void meta_command(ErlNifEnv *env, int what, wxe_me_ref *mp) {
   }
 }
 
+//
+// argv[0] == atom function name
+// argv[1] == arguments (tuple)
+// argv[2] == name of module
+// argv[3] == reource name
+// argv[4] == resource
+//
+
+void wxe_dyncall(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd)
+{
+   ERL_NIF_TERM * argv = Ecmd.args;
+   ERL_NIF_TERM darg[2];
+   int r;
+   if (Ecmd.argc != 5)
+     return;
+   darg[0] = (ERL_NIF_TERM) Ecmd.argc;  // argc+return value
+   darg[1] = (ERL_NIF_TERM) Ecmd.args;
+   r = enif_dynamic_resource_call(Ecmd.env, argv[2], argv[3], argv[4], darg);
+   if (r == 0) {     
+     if (darg[0] == 0)
+       return;
+     wxeReturn rt = wxeReturn(memenv, Ecmd.caller, true);
+     rt.send(darg[0]);
+   }
+   else {
+        enif_fprintf(stderr, "wxe_dyncall: failed r=%d\r\n", r);
+   }
+}
+
 void send_msg(const char * type, const wxString * msg) {
   WxeApp * app = (WxeApp *) wxTheApp;
   wxeReturn rt = wxeReturn(app->global_me, init_caller);
