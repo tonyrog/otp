@@ -83,10 +83,10 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4.2.2
       - name: Download sarif file
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # ratchet:actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # ratchet:actions/download-artifact@v4.1.9
       # Upload the results to GitHub's code scanning dashboard.
       - name: "Upload to code-scanning"
         if: ${{ !cancelled() }}
-        uses: github/codeql-action/upload-sarif@b56ba49b26e50535fa1e7f7db0f4f7b4bf65d80d # ratchet:github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@6bb031afdd8eb862ea3fc1848194185e076637e5 # ratchet:github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "SARIF file/results.sarif"
