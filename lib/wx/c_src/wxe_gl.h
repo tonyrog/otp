@@ -23,7 +23,7 @@
 
 // #include "egl_impl.h"
 
-void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLContext *context);
+void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLContext *context,  ErlNifEnv* env, WxeDynCall* dcall);
 void deleteActiveGL(wxGLCanvas *canvas);
 void gl_dispatch(wxeCommand *);
 extern "C" {

@@ -706,14 +706,8 @@ class EwxGLCanvas : public wxGLCanvas {
 #if wxUSE_GLCANVAS
 class EwxGLContext : public wxGLContext {
  public:
-#ifdef wxUSE_GLFW
-  bool mGlfwInitialized;
-#endif
   ~EwxGLContext() {((WxeApp *)wxTheApp)->clearPtr(this);};
   EwxGLContext(wxGLCanvas * win,wxGLContext * other) : wxGLContext(win,other) {
-#ifdef wxUSE_GLFW    
-    mGlfwInitialized = false;
-#endif
   };
 };
 #endif // wxUSE_GLCANVAS

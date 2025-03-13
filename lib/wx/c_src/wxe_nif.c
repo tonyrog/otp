@@ -254,12 +254,49 @@ void wxe_init_atoms(ErlNifEnv *env) {
 static int wxe_init(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM arg)
 {
     ErlNifResourceTypeInit init = {wxe_destroy_env, NULL, wxe_process_down};
-
+    WxeDynCall* dinit = NULL;
+    
     wxe_init_atoms(env);
 
     wxeMemEnvRt = enif_open_resource_type_x(env, "wxMemEnv", &init, ERL_NIF_RT_CREATE, NULL);
+    if ((arg != 0) && enif_is_list(env, arg)) {
+	// list of [{ModName::atom(), ResName::atom(), Res::reference(),
+	//           FunName::atom(), FunArgs::tuple()}]
+	int i = 0;
+	ERL_NIF_TERM list = arg;
+	ERL_NIF_TERM hd, tl;
+	unsigned int len;
+	size_t sz;
+	enif_get_list_length(env, arg, &len);
+	sz = sizeof(WxeDynCall)*(len+1);
+	dinit = enif_alloc(sz);
+	memset(dinit, 0, sz);
+	while(enif_get_list_cell(env, list, &hd, &tl)) {
+	    int arity;
+	    const ERL_NIF_TERM* elem;
+	    if (enif_get_tuple(env, hd, &arity, &elem)) {
+		const ERL_NIF_TERM* fargs;
+		
+		if (!enif_is_atom(env, elem[0])) goto next;
+		dinit[i].fname = elem[0];
+		if (!enif_get_tuple(env, elem[1], &arity, &fargs)) goto next;
+		if (!enif_is_atom(env, elem[2])) goto next;
+		dinit[i].mod = elem[2];
+		if (!enif_is_atom(env, elem[3])) goto next;
+		dinit[i].rname = elem[3];
+		if (!enif_is_ref(env,elem[4])) goto next;
+		dinit[i].env = enif_alloc_env();
+		dinit[i].args = enif_make_copy(dinit[i].env, elem[1]);
+		dinit[i].res  = enif_make_copy(dinit[i].env, elem[4]);
+		dinit[i].need_init = 1;
+		i++;
+	    next:		
+	    }
+	    list = tl;
+	}
+    }
 
-    if(start_native_gui(env) == WXE_INITIATED)
+    if(start_native_gui(env, dinit) == WXE_INITIATED)
         return 0;
     else
         return 1;

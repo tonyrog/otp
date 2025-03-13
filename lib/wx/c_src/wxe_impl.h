@@ -48,6 +48,8 @@ typedef wxString wxeLocaleC;
 
 void send_msg(const char *, const wxString *);   // For debugging and error msgs
 
+void set_dyn_init(WxeDynCall* dyn_init);
+
 extern ErlNifResourceType* wxeMemEnvRt;
 
 class WxeApp : public wxApp
@@ -102,6 +104,8 @@ public:
   wxeFifo * delayed_delete;
   // Temp container for callbacks
   wxeCommand * cb_return;
+  // dyncall resource initialize (setActiveGL)
+  WxeDynCall* dinit;
 };
 
 #define Badarg(Argc) { throw wxe_badarg(Argc); }

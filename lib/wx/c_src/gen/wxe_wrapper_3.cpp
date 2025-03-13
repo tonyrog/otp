@@ -2614,7 +2614,7 @@ void wxGLCanvas_SetCurrent(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd)
   context = (wxGLContext *) memenv->getPtr(env, argv[1], "context");
   if(!This) throw wxe_badarg("This");
   bool Result = This->SetCurrent(*context);
- setActiveGL(memenv, Ecmd.caller, This, context);
+  setActiveGL(memenv, Ecmd.caller, This, context, Ecmd.env, app->dinit);
   wxeReturn rt = wxeReturn(memenv, Ecmd.caller, true);
   rt.send(  rt.make_bool(Result));
 
@@ -2719,7 +2719,7 @@ void wxGLContext_SetCurrent(WxeApp *app, wxeMemEnv *memenv, wxeCommand& Ecmd)
   win = (wxGLCanvas *) memenv->getPtr(env, argv[1], "win");
   if(!This) throw wxe_badarg("This");
   bool Result = This->SetCurrent(*win);
- setActiveGL(memenv, Ecmd.caller, win, This);
+  setActiveGL(memenv, Ecmd.caller, win, This, Ecmd.env, app->dinit);
   wxeReturn rt = wxeReturn(memenv, Ecmd.caller, true);
   rt.send(  rt.make_bool(Result));
 

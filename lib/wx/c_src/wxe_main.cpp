@@ -52,7 +52,7 @@ void *wxe_main_loop(void * );
  *  START AND STOP of driver thread
  * ************************************************************/
 
-int start_native_gui(ErlNifEnv *env)
+int start_native_gui(ErlNifEnv *env, WxeDynCall* dinit)
 {
   int res;
   wxe_status_m = enif_mutex_create((char *) "wxe_status_m");
@@ -64,12 +64,12 @@ int start_native_gui(ErlNifEnv *env)
 
 #ifdef __DARWIN__
   res = erl_drv_steal_main_thread((char *)"wxwidgets",
-				  &wxe_thread,wxe_main_loop,(void *) NULL,NULL);
+				  &wxe_thread,wxe_main_loop,(void *) dinit,NULL);
 #else
   ErlNifThreadOpts *opts = enif_thread_opts_create((char *)"wx thread");
   opts->suggested_stack_size = 8192;
   res = enif_thread_create((char *)"wxwidgets",
-                           &wxe_thread,wxe_main_loop,(void *) NULL,opts);
+                           &wxe_thread,wxe_main_loop,(void *) dinit,opts);
   enif_thread_opts_destroy(opts);
 #endif
   if(res == 0) {
@@ -107,7 +107,7 @@ void stop_native_gui(ErlNifEnv* env)
  *  wxWidgets Thread
  * ************************************************************/
 
-void *wxe_main_loop(void * _unused)
+void *wxe_main_loop(void * user_arg)
 {
   int result;
   int  argc = 1;
@@ -135,6 +135,9 @@ void *wxe_main_loop(void * _unused)
 #endif
 
   wxe_ps_init();
+
+  set_dyn_init((WxeDynCall*) user_arg);
+  
   result = wxEntry(argc, argv);
   // fprintf(stderr, "WXWidgets quits main loop %d \r\n", result);
   if(result >= 0 && wxe_status == WXE_INITIATED) {

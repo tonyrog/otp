@@ -98,6 +98,16 @@ typedef struct {
     void *memenv;
 } wxe_me_ref;
 
+typedef struct {
+    int need_init;
+    ErlNifEnv* env;      // data in args
+    ERL_NIF_TERM  fname; // function name
+    ERL_NIF_TERM  args;  // tuple with arguments
+    ERL_NIF_TERM  mod;   // resource module
+    ERL_NIF_TERM  rname; // resource name
+    ERL_NIF_TERM  res;   // resource
+} WxeDynCall;
+
 int wxe_get_size_t(ErlNifEnv* env, ERL_NIF_TERM term, size_t* dp);
 int wxe_get_float(ErlNifEnv* env, ERL_NIF_TERM term, float* dp);
 int wxe_get_double(ErlNifEnv* env, ERL_NIF_TERM term, double* dp);
@@ -110,7 +120,7 @@ ERL_NIF_TERM impl_get_consts(ErlNifEnv* env);
 
 /* wxe_main functions */
 
-int  start_native_gui(ErlNifEnv *);
+int  start_native_gui(ErlNifEnv *, WxeDynCall *);
 void stop_native_gui(ErlNifEnv *);
 
 /* wxe_ps_init */

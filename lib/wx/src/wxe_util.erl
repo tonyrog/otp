@@ -48,17 +48,17 @@
        init_opengl/2
       ]).
 
--export([priv_dir/2, opt_error_log/3, init_nif/1]).
+-export([priv_dir/2, opt_error_log/3, init_nif/2]).
 
 -include("wxe.hrl").
 
 -define(NIF_ERROR, erlang:nif_error({nif_not_loaded,{?MODULE,?FUNCTION_NAME,?FUNCTION_ARITY},
                                      {line,?LINE}})).
 
-init_nif(Silent) ->
+init_nif(Silent,InitRes) ->
     {PrivDir, NifDir} = priv_dir("wxe_driver", Silent),
     os:putenv("WX_PRIV_DIR", unicode:characters_to_list(PrivDir)),
-    erlang:load_nif(filename:join(NifDir, "wxe_driver"), 0).
+    erlang:load_nif(filename:join(NifDir, "wxe_driver"), InitRes).
 
 
 color({R,G,B}) -> {R,G,B,255};

@@ -28,7 +28,7 @@
 #include "wxe_return.h"
 #include "wxe_gl.h"
 #include "gen/wxe_macros.h"
-#include "gen/wxe_derived_dest.h"
+// #include "gen/wxe_derived_dest.h"
 
 #ifdef wxUSE_GLFW
 #include <GLFW/glfw3.h>
@@ -76,7 +76,7 @@ ErlNifUInt64 wxe_make_hash(ErlNifEnv *env, ErlNifPid *pid)
   return enif_hash(ERL_NIF_INTERNAL_HASH, term, 786234121);
 }
 
-void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLContext *context)
+void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLContext *context, ErlNifEnv* env, WxeDynCall* dcall)
 {
   ErlNifUInt64 callId = wxe_make_hash(memenv->tmp_env, &caller);
   wxe_glc * entry = glc[callId];
@@ -96,21 +96,46 @@ void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLCo
   entry->context = context;
   glc[gl_active_index] = entry;
   //fprintf(stderr, "set caller %p => %p\r\n", caller, canvas);
-  if(!egl_initiated && wxe_gl_lookup_func) {
-    WXE_GL_FUNC fptr;
-    if((fptr = (WXE_GL_FUNC) wxe_gl_lookup_func(GLE_LIB_START))) {
-      fptr(memenv->tmp_env, &caller, NULL);
+  if(!egl_initiated) {
+    if (wxe_gl_lookup_func) {
+      WXE_GL_FUNC fptr;
+      if((fptr = (WXE_GL_FUNC) wxe_gl_lookup_func(GLE_LIB_START))) {
+        fptr(memenv->tmp_env, &caller, NULL);
+      }
       egl_initiated = 1;
     }
-  }
-#ifdef wxUSE_GLFW
-  if (!((EwxGLContext*)context)->mGlfwInitialized) {
-      ((EwxGLContext*)context)->mGlfwInitialized = true;
-      if (!glfwInit()) {
-        enif_fprintf(stderr, "GLFW initialization failed\r\n");
+    // loop over resources that need init at gl setup
+    if (dcall != NULL) {
+      int i = 0;
+      while(dcall[i].res != 0) {
+        if (dcall[i].need_init) {
+          int r;
+          ERL_NIF_TERM argv[5];
+          ERL_NIF_TERM darg[2];
+
+          argv[0] = dcall[i].fname;
+          argv[1] = dcall[i].args;
+          argv[2] = dcall[i].mod;
+          argv[3] = dcall[i].rname;
+          argv[4] = dcall[i].res;
+          
+          darg[0] = (ERL_NIF_TERM) 5;     // argc+return value
+          darg[1] = (ERL_NIF_TERM) argv;
+
+          r = enif_dynamic_resource_call(env,
+                                         dcall[i].mod,
+                                         dcall[i].rname,
+                                         dcall[i].res,
+                                         darg);
+          if (r == 0)
+            dcall[i].need_init = 0;
+          else
+            enif_fprintf(stderr, "setActiveGL dyninit: failed r=%d\r\n", r);
+        }
+        i++;
       }
+    }
   }
-#endif
 }
 
 void deleteActiveGL(wxGLCanvas *canvas)

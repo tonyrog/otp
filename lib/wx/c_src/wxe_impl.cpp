@@ -66,6 +66,8 @@ unsigned int wxe_idle_processed = 0;
 unsigned int wxe_needs_signal = 0;  // inside batch if larger than 0
 unsigned int wxe_needs_wakeup = 0;  // inside batch if larger than 0
 
+static WxeDynCall* the_dyn_init = NULL;
+
 /* ************************************************************
  *  Commands from erlang
  *    Called by emulator thread
@@ -114,7 +116,7 @@ void meta_command(ErlNifEnv *env, int what, wxe_me_ref *mp) {
 // argv[0] == atom function name
 // argv[1] == arguments (tuple)
 // argv[2] == name of module
-// argv[3] == reource name
+// argv[3] == resource name
 // argv[4] == resource
 //
 
@@ -204,9 +206,16 @@ static GLogWriterOutput wxe_log_glib(GLogLevelFlags log_level,
 }
 #endif
 
+void set_dyn_init(WxeDynCall* dyn_init)
+{
+  the_dyn_init = dyn_init;
+}
+
 bool WxeApp::OnInit()
 {
-
+  dinit = the_dyn_init;
+  enif_fprintf(stderr, "WxeApp::OnInit() the_dyn_init=%p\n", dinit);
+  
   global_me = new wxeMemEnv();
   wxe_queue = new wxeFifo(2000);
   cb_return = NULL;

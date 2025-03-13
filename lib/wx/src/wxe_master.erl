@@ -30,7 +30,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start/1, init_env/1, init_opengl/0, fetch_msgs/0]).
+-export([start/1, start/2, init_env/1, init_opengl/0, fetch_msgs/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -51,8 +51,15 @@
 %% Function: start(SilentStart) -> {ok,Pid} | ignore | {error,Error}
 %% Description: Starts the server
 %%--------------------------------------------------------------------
+-type wx_init_data() :: {FunName::atom(), FunArgs::tuple(),
+			 ModName::atom(), ResName::atom(), Res::reference()}.
+
 start(SilentStart) ->
-    gen_server:start({local, ?MODULE}, ?MODULE, [SilentStart], []).
+    start(SilentStart,[]).
+-spec start(SilentStart::boolean(), InitRes::[wx_init_data()]) ->
+	  ok.
+start(SilentStart,InitRes) ->
+    gen_server:start({local, ?MODULE}, ?MODULE, [SilentStart,InitRes], []).
 
 %%--------------------------------------------------------------------
 %% Function: init_port(SilentStart) -> {UserPort,CallBackPort} | error(Error)
@@ -103,7 +110,7 @@ fetch_msgs() ->
 %%                         {stop, Reason}
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
-init([SilentStart]) ->
+init([SilentStart,InitRes]) ->
     erlang:group_leader(whereis(init), self()),
     case catch erlang:system_info(smp_support) of
 	true -> ok;
@@ -112,7 +119,7 @@ init([SilentStart]) ->
 	    erlang:error({error, not_smp})
     end,
     process_flag(trap_exit, true),
-    case wxe_util:init_nif(SilentStart) of
+    case wxe_util:init_nif(SilentStart,InitRes) of
         ok -> ok;
         {error, {Reason, String}} = Err ->
             wxe_util:opt_error_log(SilentStart,
