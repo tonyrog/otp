@@ -40,6 +40,7 @@
          debug_ping/0, debug_driver/1,
          init_opengl/2
         ]).
+-export([queue_dyn_cmd/5, rec_dyn/0]).
 
 -nifs([queue_cmd/1,queue_cmd/2,queue_cmd/3,queue_cmd/4,queue_cmd/5,
        queue_cmd/6,queue_cmd/7,queue_cmd/8,queue_cmd/9,queue_cmd/10,
@@ -110,6 +111,19 @@ queue_cmd(_,_,_,_,_,_,_,_,_,_,_,_) -> ?NIF_ERROR.
 queue_cmd(_,_,_,_,_,_,_,_,_,_,_,_,_) -> ?NIF_ERROR.
 queue_cmd(_,_,_,_,_,_,_,_,_,_,_,_,_,_) -> ?NIF_ERROR.
 queue_cmd(_,_,_,_,_,_,_,_,_,_,_,_,_,_,_) -> ?NIF_ERROR.
+
+%% 
+-spec queue_dyn_cmd(FunName::atom(), Args::tuple(),
+		    Mod::atom(), ResName::atom(), Res::reference()) ->
+	  ok.
+    
+queue_dyn_cmd(FunName,Args,Mod,ResName,Res) when
+      is_atom(FunName), is_tuple(Args), is_atom(Mod),
+      is_atom(ResName), is_reference(Res) ->
+    queue_cmd(FunName,Args,Mod,ResName,Res,?get_env(),?WXE_DYNCALL).
+
+rec_dyn() ->
+    rec(?WXE_DYNCALL).
 
 rec(Op) ->
     receive

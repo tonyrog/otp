@@ -99,13 +99,12 @@ typedef struct {
 } wxe_me_ref;
 
 typedef struct {
-    int need_init;
-    ErlNifEnv* env;      // data in args
-    ERL_NIF_TERM  fname; // function name
-    ERL_NIF_TERM  args;  // tuple with arguments
-    ERL_NIF_TERM  mod;   // resource module
-    ERL_NIF_TERM  rname; // resource name
-    ERL_NIF_TERM  res;   // resource
+    int init;              // 0=no, 1=thread start, 2=setActiveGL
+    ErlNifEnv* env;        // data in argv
+    ERL_NIF_TERM darg[2];
+    // argv[] == {FunName::atom(), FunArgs::tuple(),
+    //            ModName::atom(), ResName::atom(), Res::reference()}
+    ERL_NIF_TERM argv[5];
 } WxeDynCall;
 
 int wxe_get_size_t(ErlNifEnv* env, ERL_NIF_TERM term, size_t* dp);

@@ -260,8 +260,9 @@ static int wxe_init(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM arg)
 
     wxeMemEnvRt = enif_open_resource_type_x(env, "wxMemEnv", &init, ERL_NIF_RT_CREATE, NULL);
     if ((arg != 0) && enif_is_list(env, arg)) {
-	// list of [{ModName::atom(), ResName::atom(), Res::reference(),
-	//           FunName::atom(), FunArgs::tuple()}]
+	// init() == {FunName::atom(), FunArgs::tuple(),
+	//            ModName::atom(), ResName::atom(), Res::reference()}
+	// list of [init()]
 	int i = 0;
 	ERL_NIF_TERM list = arg;
 	ERL_NIF_TERM hd, tl;
@@ -275,22 +276,25 @@ static int wxe_init(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM arg)
 	    int arity;
 	    const ERL_NIF_TERM* elem;
 	    if (enif_get_tuple(env, hd, &arity, &elem)) {
+		// copy elem[0..4] to dinit.argv[0..4]
 		const ERL_NIF_TERM* fargs;
-		
+		if (arity != 5) goto next;
 		if (!enif_is_atom(env, elem[0])) goto next;
-		dinit[i].fname = elem[0];
+		dinit[i].argv[0] = elem[0];   // fname
 		if (!enif_get_tuple(env, elem[1], &arity, &fargs)) goto next;
 		if (!enif_is_atom(env, elem[2])) goto next;
-		dinit[i].mod = elem[2];
+		dinit[i].argv[2] = elem[2];   // mod
 		if (!enif_is_atom(env, elem[3])) goto next;
-		dinit[i].rname = elem[3];
+		dinit[i].argv[3] = elem[3];   // rname
 		if (!enif_is_ref(env,elem[4])) goto next;
 		dinit[i].env = enif_alloc_env();
-		dinit[i].args = enif_make_copy(dinit[i].env, elem[1]);
-		dinit[i].res  = enif_make_copy(dinit[i].env, elem[4]);
-		dinit[i].need_init = 1;
+		dinit[i].argv[1] = enif_make_copy(dinit[i].env, elem[1]);
+		dinit[i].argv[4] = enif_make_copy(dinit[i].env, elem[4]);
+		dinit[i].init = 2;  // init in setActiveGL, fixme pass this?
+		dinit[i].darg[0] = (ERL_NIF_TERM) 5;
+		dinit[i].darg[1] = (ERL_NIF_TERM) dinit[i].argv;
 		i++;
-	    next:		
+	    next:	
 	    }
 	    list = tl;
 	}

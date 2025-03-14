@@ -30,10 +30,6 @@
 #include "gen/wxe_macros.h"
 // #include "gen/wxe_derived_dest.h"
 
-#ifdef wxUSE_GLFW
-#include <GLFW/glfw3.h>
-#endif
-
 #define GLE_LIB_START 5000
 
 /* ****************************************************************************
@@ -107,29 +103,19 @@ void setActiveGL(wxeMemEnv *memenv, ErlNifPid caller, wxGLCanvas *canvas, wxGLCo
     // loop over resources that need init at gl setup
     if (dcall != NULL) {
       int i = 0;
-      while(dcall[i].res != 0) {
-        if (dcall[i].need_init) {
+	// init() == {FunName::atom(), FunArgs::tuple(),
+	//            ModName::atom(), ResName::atom(), Res::reference()}      
+      while(dcall[i].argv[4] != 0) { // check that resource is present
+        if (dcall[i].init == 2) { // 2 = init in setActiveGL
           int r;
-          ERL_NIF_TERM argv[5];
-          ERL_NIF_TERM darg[2];
-
-          argv[0] = dcall[i].fname;
-          argv[1] = dcall[i].args;
-          argv[2] = dcall[i].mod;
-          argv[3] = dcall[i].rname;
-          argv[4] = dcall[i].res;
           
-          darg[0] = (ERL_NIF_TERM) 5;     // argc+return value
-          darg[1] = (ERL_NIF_TERM) argv;
-
           r = enif_dynamic_resource_call(env,
-                                         dcall[i].mod,
-                                         dcall[i].rname,
-                                         dcall[i].res,
-                                         darg);
-          if (r == 0)
-            dcall[i].need_init = 0;
-          else
+                                         dcall[i].argv[2], // mod
+                                         dcall[i].argv[3], // rname,
+                                         dcall[i].argv[4], // resource
+                                         dcall[i].darg);
+          dcall[i].init = 0;
+          if (r != 0)
             enif_fprintf(stderr, "setActiveGL dyninit: failed r=%d\r\n", r);
         }
         i++;

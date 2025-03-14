@@ -73,6 +73,7 @@
 
 -define(DESTROY_OBJECT,  50).
 -define(WXE_REGISTER_OBJECT,  51).  %% Used for object monitoring
+-define(WXE_DYNCALL, 52).           %% dynamic resource call
 %% -define(WXE_INIT_OPENGL, 52).
 
 -include("gen/wxe_funcs.hrl").
